@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="card-body text-black">
+
+        <div class="" style="display:flex;">
+            <div class="col-lg-7 px-3 py-2">
+
+                <h3 class="mb-4 pt-2 text-center fw-bold text-uppercase">Your products</h3>
+                {% for item in items %}
+
+                    <div class="d-flex align-items-center mb-5">
+                        <div class="flex-shrink-0">
+                            <img src="{{ item['image'] }}"
+                                 class="img-fluid" style="width: 150px;" alt="Generic placeholder image">
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <a href="{{ url_for('remove_from_cart', index=item['index']) }}"
+                               class="float-end text-black"><i class="fas fa-times"></i></a>
+                            <h5 class="text-primary">{{ item['name'] }}</h5>
+                            <h6 style="color: #9e9e9e;">Color: {{ item['color'] }}</h6>
+                            <div class="d-flex align-items-center">
+                                <p class="fw-bold mb-0 me-5 pe-3">${{ item['price'] }}</p>
+                                <p class="fw-bold mb-0 me-5 pe-3">Quantity: {{ item['quantity'] }}</p>
+
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+
+                <hr class="mb-4" style="height: 2px; background-color: #1266f1; opacity: 1;">
+
+
+                <div class="d-flex justify-content-between p-2 mb-2" style="background-color: #e1f5fe;">
+                    <h5 class="fw-bold mb-0">Total:</h5>
+                    <h5 class="fw-bold mb-0">{{ total_cart }}</h5>
+                </div>
+
+            </div>
+            <div style="display: block">
+
+                <div class="col-lg-3 px-5 py-2">
+                    <h4 class="mb-4 pt-2 text-center fw-bold text-uppercase">Shiiping Address</h4>
+<form method="POST" action="{{ url_for('cart_page') }}">
+                        {{ checkout_form.hidden_tag() }}
+                    <div class="form-outline mb-2">
+                        <label class="form-label" for="typeText">{{ checkout_form.country.label }}</label>
+                        {{ checkout_form.country(type="text", class="form-control form-control-md active") }}
+                    </div>
+
+                    <div class="form-outline mb-2">
+                        <label class="form-label" for="typeName">{{ checkout_form.city.label }}</label>
+                        {{ checkout_form.city(type="text", class="form-control form-control-md active") }}
+                    </div>
+
+                    <div class="form-outline mb-2">
+                        <label class="form-label" for="typeName">{{ checkout_form.address.label }}</label>
+                        {{ checkout_form.address(type="text", class="form-control form-control-md active") }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <div class="form-outline">
+                                <label class="form-label" for="typeExp">{{ checkout_form.first_name.label }}</label>
+                                {{ checkout_form.first_name(class="form-control form-control-md active") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="form-outline">
+                                <label class="form-label" for="typeExp">{{ checkout_form.last_name.label }}</label>
+                                {{ checkout_form.last_name(class="form-control form-control-md active") }}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-lg-3 px-5 py-2" style="">
+
+                        <h4 class="mb-4 pt-2 text-center fw-bold text-uppercase"
+                            style="position: relative;left: calc(-50vw + 50%);width: 100vw;text-align: center;">
+                            Payments
+                        </h4>
+
+                        <div class="form-outline mb-2">
+                            <label class="form-label" for="typeText">{{ checkout_form.card_number.label }}</label>
+                            {{ checkout_form.card_number(class="form-control form-control-md active") }}
+                        </div>
+
+                        <div class="form-outline mb-2">
+                            <label class="form-label" for="typeName">Name on card</label>
+                            <input type="text" id="typeName" class="form-control form-control-md active">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <div class="form-outline">
+                                    <label class="form-label" for="typeExp">Expiration</label>
+                                    <input type="text" id="typeExp" class="form-control form-control-md active"
+                                           value="01/22" size="7" minlength="7" maxlength="7">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="form-outline">
+                                    <label class="form-label" for="typeText">{{ checkout_form.cvv.label }}</label>
+
+                                    {{ checkout_form.cvv(class="form-control form-control-md active") }}
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block btn-lg"
+                                style="display: block; width: 100%; margin-top: 15px">Buy now
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+{% endblock %}
