@@ -1,0 +1,64 @@
+version: '3'
+services:
+  flasky:
+    build:
+      context: .
+      dockerfile: CeleryDockerFile
+    command: bash -c "flask db init && flask db migrate && flask db upgrade && python run.py"
+    volumes:
+      - .:/code
+    environment:
+      FLASK_APP: run.py
+    ports:
+      - "5000:5000"
+    restart: always
+
+
+  db:
+    image: postgres:12
+    container_name: market_postgres
+    restart: always
+#    volumes:
+#      - ./dump/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=market
+    ports:
+      - "5433:5432"
+
+
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - 6380:6379
+    command: ["redis-server", "--bind", "redis", "--port", "6379"]
+    restart: always
+
+  celery:
+    build:
+      context: .
+      dockerfile: CeleryDockerFile
+    container_name: celery_market
+    restart: always
+    command: celery -A market.celery worker --loglevel=INFO
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+      - flasky
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: CeleryDockerFile
+    container_name: beat_market
+    restart: always
+    command: celery -A market.celery beat --loglevel INFO
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+      - celery
+      - flasky

@@ -1,12 +1,22 @@
 from flask import render_template, redirect, url_for, flash, session
 from flask_admin import AdminIndexView, expose, Admin
 from flask_admin.contrib.sqla import ModelView
-
 from market.handlers import handle_cart
 from market import app, db, login_manager
 from market.models import Item, User, Order, OrderItems
 from market.forms import RegisterForm, LogInForm, AddToCart, CheckoutForm
 from flask_login import login_user, logout_user, login_required
+from market import celery
+from jsonrpc.backend.flask import api
+
+app.register_blueprint(api.as_blueprint())
+app.add_url_rule('/api', 'api', api.as_view(), methods=['POST'])
+
+
+@api.dispatcher.add_method
+def get_order_status(order_num):
+    order = Order.query.filter_by(id=order_num).first()
+    return order.status
 
 
 @app.route('/', methods=['POST', 'GET'])
@@ -53,7 +63,6 @@ def cart_page():
         return redirect(url_for('succeed_order'))
 
     else:
-        print(checkout_form.errors)
         for err_msg in checkout_form.errors.values():
             flash(f"Error with creating user: {err_msg}", category='danger')
 
@@ -70,7 +79,6 @@ def succeed_order():
 def remove_from_cart(index):
     del session['cart'][int(index)]
     session.modified = True
-    print(session['cart'])
     return redirect(url_for('cart_page'))
 
 
@@ -128,6 +136,12 @@ class MyHomeView(AdminIndexView):
 admin = Admin(app, index_view=MyHomeView(name='Dashboard'), template_mode='bootstrap3')
 
 
+@celery.task
+def create_order_status_history(order_id, status):
+    with open('order_status_history', 'a') as file:
+        file.write(f'Order: {order_id} changed status to {status}')
+
+
 class OrderViewAdmin(ModelView):
     form_choices = {
         'status': [
@@ -137,9 +151,9 @@ class OrderViewAdmin(ModelView):
         ]
     }
 
-    # @celery.task(name='web.change_status')
     def on_model_change(self, form, model, is_created):
-        pass
+        if form.data['status']:
+            create_order_status_history.delay(model.id, model.status)
 
 
 admin.add_view(ModelView(User, db.session))

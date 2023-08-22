@@ -1,22 +1,20 @@
 from celery import Celery
 
 # celery config
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
 
 # initialize celery app
-def get_celery_app_instance(app):
-    celery = Celery(
-        app.import_name,
-        backend=CELERY_BROKER_URL,
-        broker=CELERY_BROKER_URL
-    )
+def make_celery(app):
+    celery = Celery(app.import_name, broker=CELERY_BROKER_URL, backend=CELERY_RESULT_BACKEND)
     celery.conf.update(app.config)
+    TaskBase = celery.Task
 
-    class ContextTask(celery.Task):
+    class ContextTask(TaskBase):
+        abstract = True
         def __call__(self, *args, **kwargs):
             with app.app_context():
-                return self.run(*args, **kwargs)
-
+                return TaskBase.__call__(self, *args, **kwargs)
     celery.Task = ContextTask
     return celery

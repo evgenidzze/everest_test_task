@@ -37,6 +37,9 @@ class Item(db.Model):
     def __repr__(self):
         return self.title
 
+ORDER_ITEM_STATUS = (('COMPLETED', 'COMPLETED'),
+            ('PROCESSING', 'PROCESSING'),
+            ('CANCELED', 'CANCELED'),)
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
